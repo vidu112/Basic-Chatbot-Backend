@@ -97,3 +97,14 @@ export async function logout(req, res) {
   }
   return res.clearCookie("jid", COOKIE_OPTS).json({ success: true });
 }
+
+export async function me(req, res) {
+  try {
+    const user = await User.findById(req.userId).select("username email isVerified");
+    if (!user) return res.status(404).json({ error: "User not found" });
+    return res.json({ user });
+  } catch (err) {
+    console.error("[authController.me]", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+}
