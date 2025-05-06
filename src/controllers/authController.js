@@ -14,16 +14,33 @@ const COOKIE_OPTS = {
 };
 
 export async function signup(req, res) {
-  const { username, password } = req.body;
-  if (!username || !password) {
+  const { username, email, firstName, lastName, password } = req.body;
+  if (!username || !email || !firstName || !lastName || !password) {
     return res.status(400).json({ error: "Missing fields" });
   }
-  if (await User.exists({ username })) {
-    return res.status(409).json({ error: "Username taken" });
+
+  // Check for existing username OR email
+  if (await User.exists({ $or: [{ username }, { email }] })) {
+    return res.status(409).json({ error: "Username or email already taken" });
   }
+
   const hashed = await bcrypt.hash(password, 10);
-  const user = await User.create({ username, password: hashed });
-  return res.status(201).json({ id: user._id, username: user.username });
+  const user = await User.create({
+    username,
+    email,
+    firstName,
+    lastName,
+    password: hashed
+  });
+
+  // Respond with user info (no tokens yet)
+  return res.status(201).json({
+    id:        user._id,
+    username:  user.username,
+    email:     user.email,
+    firstName: user.firstName,
+    lastName:  user.lastName
+  });
 }
 
 export async function login(req, res) {
@@ -36,18 +53,13 @@ export async function login(req, res) {
     return res.status(401).json({ error: "Invalid credentials" });
   }
 
-  // Issue tokens
+  // Issue tokens...
   const at = signAccessToken({ sub: user._id });
   const rt = signRefreshToken({ sub: user._id });
-
-  // Persist RT server-side
   user.refreshToken = rt;
   await user.save();
 
-  // Send RT as httpOnly cookie, AT in JSON
-  return res
-    .cookie("jid", rt, COOKIE_OPTS)
-    .json({ accessToken: at });
+  res.cookie("jid", rt, COOKIE_OPTS).json({ accessToken: at });
 }
 
 export async function refreshToken(req, res) {
