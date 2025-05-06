@@ -1,9 +1,15 @@
+// src/routes/chatRoutes.js
 import { Router } from "express";
-import { handleChat, clearHistory } from "../controllers/chatController.js";
+import { getChatHistory, handleChat, clearHistory } from "../controllers/chatController.js";
+import { ensureAuth } from "../utils/authMiddleware.js";
 
 const router = Router();
 
-router.post("/", handleChat);
+// Protect all chat routes
+router.use(ensureAuth);
+
+router.get("/",    getChatHistory);
+router.post("/",   handleChat);
 router.post("/clear", clearHistory);
 
 export default router;
