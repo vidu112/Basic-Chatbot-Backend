@@ -93,7 +93,10 @@ export async function logout(req, res) {
     try {
       const { sub } = verifyRefreshToken(token);
       await User.findByIdAndUpdate(sub, { refreshToken: null });
-    } catch {}
+    } catch (err) {
+      console.error("logout Servr error ", err);
+      return res.status(500).json({ error: "Log Out Server error" });
+    }
   }
   return res.clearCookie("jid", COOKIE_OPTS).json({ success: true });
 }
