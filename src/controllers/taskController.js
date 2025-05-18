@@ -42,6 +42,7 @@ export async function listTasks(req, res) {
       const tasks = await Task.find({
         $or: [{ createdBy: req.userId }, { assignedTo: req.userId }]
       })
+        .populate("assignedTo", "firstName lastName username")
         .sort({ deadline: 1, priority: -1 })
         .lean();
       res.json({ tasks });
