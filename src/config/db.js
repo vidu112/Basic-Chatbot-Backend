@@ -12,7 +12,14 @@ if (!uri) {
 mongoose.set("strictQuery", false);
 
 mongoose
-  .connect(uri)
+.connect(uri, {
+  // Accept self-signed or unverified certs (dev only!)
+  tls: true,
+  tlsAllowInvalidCertificates: true,
+  tlsAllowInvalidHostnames: true,
+  // optional: fail fast if it can’t connect
+  serverSelectionTimeoutMS: 5000,
+})
   .then(() => console.log("✅ Connected to MongoDB"))
   .catch(err => {
     console.error("❌ MongoDB connection error:", err);
