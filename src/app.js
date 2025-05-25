@@ -3,6 +3,8 @@ import cors from "cors";
 import "dotenv/config";
 import "./config/db.js";
 
+import morgan from "morgan";
+import { requestLogger } from "./middleware/requestLogger.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
@@ -17,6 +19,13 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+
+
+// 1) Morgan for concise Apache‐style logs:
+app.use(morgan("combined"));
+
+// 2) Our custom logger for full request details:
+app.use(requestLogger);
 
 // Auth & profile
 app.use("/api/auth", authRoutes);

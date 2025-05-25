@@ -1,5 +1,5 @@
-// src/controllers/taskController.js
 import Task from "../models/Task.js";
+import mongoose from "mongoose";
 
 /** POST /api/tasks  → create a new task */
 export async function createTask(req, res) {
@@ -72,27 +72,42 @@ export async function listTasks(req, res) {
     }
   }
 
-  export async function updateTask(req, res) {
-    try {
-      const { id } = req.params;
-      if (!mongoose.isValidObjectId(id)) {
-        return res.status(400).json({ error: "Invalid task ID" });
-      }
-      const updates = req.body;
-      const task = await Task.findByIdAndUpdate(
-        id,
-        { $set: updates },
-        { new: true, runValidators: true }
-      ).lean();
-      if (!task) {
-        return res.status(404).json({ error: "Task not found" });
-      }
-      res.json({ task });
-    } catch (err) {
-      console.error("❌ updateTask:", err);
-      res.status(500).json({ error: "Failed to update task" });
-    }
+export async function updateTask(req, res) {
+  const { id } = req.params;
+  const updates = req.body;
+
+  if (!mongoose.isValidObjectId(id)) {
+    return res.status(400).json({ error: "Invalid task ID" });
   }
+
+  try {
+    // Optionally: enforce that only the creator or assignee may update:
+    // const existing = await Task.findById(id);
+    // if (!existing || ![existing.createdBy, existing.assignedTo].includes(req.userId)) {
+    //   return res.status(403).json({ error: "Not authorized to modify this task" });
+    // }
+
+    const task = await Task.findByIdAndUpdate(
+      id,
+      { $set: updates },
+      {
+        new: true,            // return the updated document
+        runValidators: true,  // validate schema rules on updates
+      }
+    )
+      .populate("assignedTo", "firstName lastName username")
+      .lean();
+
+    if (!task) {
+      return res.status(404).json({ error: "Task not found" });
+    }
+
+    return res.json({ task });
+  } catch (err) {
+    console.error("[updateTask]", err);
+    return res.status(500).json({ error: "Failed to update task" });
+  }
+}
 
   export async function deleteTask(req, res) {
     try {

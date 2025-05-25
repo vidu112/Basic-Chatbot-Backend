@@ -22,8 +22,10 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.16.0",
     "mongoose": "^8.14.1",
+    "morgan": "^1.10.0",
     "nodemailer": "^7.0.2",
-    "openai": "^4.96.2"
+    "openai": "^4.96.2",
+    "react-toastify": "^11.0.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
